@@ -1,0 +1,26 @@
+//
+// Prefix header for all source files of the 'ZaSlider' target in the 'ZaSlider' project
+//
+
+#ifdef __OBJC__
+   #import <Foundation/Foundation.h>
+   #import <UIKit/UIKit.h>
+
+   #import "DataStructs.h"
+   #import "FileHelpers.h"
+#endif
+
+#define  _SKIP_SAVED_GAME_no
+
+#define  _FREEMEM_no
+#define  _NSOPERATIONS_LOG_no
+#define  _IMGSIZE_LOG_no
+#define  _ANIMATIONS_LOG_no
+#define  _SHUFFLING_LOG_no
+#define  _MOVEMENT_LOG_no
+#define  _TILE_MOVES_LOG_no
+#define  _SQLITE_LOG_no
+
+#define  _NETTALK_LOG_no
+#define  _SYS_APIS_LOG_no
+#define  _FILES_LOG_no
