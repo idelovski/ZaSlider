@@ -37,6 +37,11 @@
    CGSize  pixSize = [aGameController pixelSizeForTileWithSideElements:sideElems];
    CGRect  tmpRect = [GameController rectForLocationIndex:aLocation withSideElements:sideElems withTileSize:pixSize];
    
+   pixSize.height = round (pixSize.height);
+   pixSize.width = round (pixSize.width);
+   
+   NSLog (@"TV initWithDestinationIndex - size: %@", NSStringFromCGSize(pixSize));
+   
    UIImageView  *imageView = nil;
 
    if (self = [super initWithFrame:tmpRect])  {
@@ -52,26 +57,15 @@
       
       self.backgroundColor = [UIColor clearColor];
       
-      // if (self.tileType != kEmptyTile)  {
-
-         /*
-         // load the background image
-         UIImage  *backgroundImage = [UIImage imageNamed:@"TileBackground.png"];  // was TileBackground.png
-         imageView = [[UIImageView alloc] initWithImage:backgroundImage];
-         imageView.frame = self.bounds;
-         [self addSubview:imageView];
-         imageView.hidden = YES;
-         [imageView release];
-          */
-         
-     // }
-      
       // create the picView
       CGRect    partRect = self.bounds;
       // need rect again, now for original place in the image
       tmpRect = [GameController rectForLocationIndex:aIndex withSideElements:sideElems withTileSize:pixSize];
+      NSLog (@"TV initWithDestinationIndex - tmpRect: %@", NSStringFromCGRect(tmpRect));
       CGRect    frameRect = CGRectMake(tmpRect.origin.x, tmpRect.origin.y, partRect.size.width, partRect.size.height);
+      NSLog (@"TV initWithDestinationIndex - frameRect: %@", NSStringFromCGRect(frameRect));
       // partRect = CGRectInset (partRect, 1., 1.);  // No need
+      
       if (completeImage)  {
          NSLog (@"Why do I have the image here?");
          UIImage  *partImage = [ImageAlbum image:completeImage
@@ -90,68 +84,34 @@
          // self.picView.hidden = YES;
          self.picView.alpha = .05f;
       }
-
-      /*
-      // shim
-      GenericCanvasView  *tmpCanvasView = [[GenericCanvasView alloc] initWithFrame:self.bounds
-                                                                          userInfo:nil
-                                                                            target:self
-                                                                      targetMethod:@selector(drawShimInRect:userInfo:)
-                                                                       andDelegate:nil];
-      [self addSubview:tmpCanvasView];
-      // tmpCanvasView.hidden = YES;
-      // tmpCanvasView.alpha = .5;
-      [tmpCanvasView release];
-      */
       
       if (self.tileType != kEmptyTile)  {
          
          partRect = self.bounds;
          
          // load the glass image
-         // UIImage  *glassImage = [UIImage imageNamed:@"TileBackgroundWF.png"];  // was  Glass.png
          UIImage  *glassImage = [UIImage imageNamed:@"Wi_circle.png"];  // was  Glass.png
-         // UIImage  *glassImage = [UIImage imageNamed:@"Glass.png"];
+         
          imageView = [[UIImageView alloc] initWithImage:glassImage]; 
          imageView.center = CGPointMake (partRect.size.width/2, partRect.size.height/2);
          imageView.alpha = .5;  // was .7
          [self addSubview:imageView];
          self.highliteView = imageView;
          [imageView release];
-         
-         // add label
-         
-         /*
-         UILabel  *aLabel = [[UILabel alloc] initWithFrame:CGRectInset (self.bounds, 1, 1)];
-         unichar   arrowChar = 0x21E7;
-         aLabel.text = [NSString stringWithCharacters:&arrowChar length:1];
-         aLabel.font = [UIFont boldSystemFontOfSize:64];
-         aLabel.textAlignment = UITextAlignmentCenter;
-         aLabel.textColor = [UIColor orangeColor];
-         aLabel.shadowColor = [UIColor darkGrayColor];
-         aLabel.shadowOffset = CGSizeMake (1, 1);
-         aLabel.backgroundColor = [UIColor clearColor];
-         // aLabel.shadowColor = [UIColor grayColor];
-         self.arrowLabel = aLabel;
-         self.arrowLabel.hidden = YES;
-         [self addSubview:aLabel];
-         [aLabel release];
-         */
-         
       
          // create the arrow view, make it hidden
          UIImage  *arrowImage = [UIImage imageNamed:@"Wi_arrow3F_60x60.png"];
+         
          imageView = [[UIImageView alloc] initWithImage:arrowImage]; 
-         // imageView.frame = self.bounds;
          imageView.center = CGPointMake (partRect.size.width/2, partRect.size.height/2);
          self.arrowView = imageView;
          [imageView release];      
          [self addSubview:self.arrowView];
          [self.arrowView setHidden:YES];
          
-
+         // Label
          UILabel  *label = [[UILabel alloc] initWithFrame:CGRectInset (self.bounds, 12, 12)];
-         // label.text = [NSString stringWithFormat:sideElems > 4 ? @"%d " : @"%d\n ", aIndex+1];
+
          label.text = [NSString stringWithFormat:@"%d ", aIndex+1];
          label.numberOfLines = sideElems > 4 ? 4 : 5;
          label.font = [UIFont systemFontOfSize:12];
@@ -165,6 +125,7 @@
          
          // finger circle
          FingerSphereView  *tmpFingerView = [[FingerSphereView alloc] initWithFrame:self.bounds];
+         
          [self addSubview:tmpFingerView];
          tmpFingerView.hidden = YES;
          // imageView.alpha = .5;
@@ -254,25 +215,6 @@
    return (angle);
 }
 
-/*
-- (float)getArrowDirectionToIndex:(int)toIndex fromIndex:(int)fromIndex
-{
-   NSLog([NSString stringWithFormat:@"toIndex:%d fromIndex:%d", toIndex, fromIndex]);
-   
-   CGFloat  toX = toIndex % sideElements;
-   CGFloat  toY = toIndex / sideElements;
-   CGFloat  fromX = fromIndex % sideElements;
-   CGFloat  fromY = fromIndex / sideElements;
-   
-   CGFloat  rise = toY - fromY;
-   CGFloat  run  = toX - fromX;
-   
-   CGFloat  angle = atan2f (rise, run);
-   
-   return (angle);
-}
-*/
-
 - (void)updateArrowLabel
 {
    NSUInteger  toIndex   = self.locIndex;
@@ -303,21 +245,18 @@
 
 - (void)drawShimInRect:(NSValue *)rectAsValue userInfo:(NSValue *)voidPtrAsValue
 {
-	CGContextRef    cgContext = UIGraphicsGetCurrentContext ();
+   CGRect    rect = [rectAsValue CGRectValue];
+   CGPoint   startFill, endFill;
    
-   CGRect          rect = [rectAsValue CGRectValue];
-
-   CGGradientRef   usedGradient;
-   CGColorSpaceRef rgbSpace;
-
-	CGPoint       startFill, endFill;
+	CGContextRef     cgContext = UIGraphicsGetCurrentContext ();
+   CGGradientRef    usedGradient;
+   CGColorSpaceRef  rgbSpace;
    
 	CGContextSetShouldAntialias (cgContext, YES);
-	// CGContextClearRect (cgContext, rect);
    
    rgbSpace = CGColorSpaceCreateDeviceRGB ();
    
-	size_t   num_locations = 2;
+	size_t   numLocations = 2;
 	CGFloat  locations [2] = { 0.1, 1. };
 	CGFloat  components [8] = {
       1., 1., 1., 0.1,
@@ -327,18 +266,10 @@
    usedGradient = CGGradientCreateWithColorComponents (rgbSpace, 
                                                        components, 
                                                        locations, 
-                                                       num_locations);
+                                                       numLocations);
 	
 	CGContextSaveGState (cgContext);
-	// CGContextAddRect(cgContext, CGRectMake (50, 50, 100, 100));
-	// CGContextClip (cgContext);
-   
-   /*
-   CGPathRef  path = [GradientButton createRoundRectShimInRect:rect
-                                                      ofHeight:rect.size.height/4.f
-                                               withUpperRadius:1
-                                                andLowerRadius:24];
-   */
+
    CGPathRef  path = [GradientButton createRoundRectShimInRect:rect
                                                       ofHeight:20
                                                withCornerRadius:1];

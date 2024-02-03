@@ -31,6 +31,8 @@
       self.theImage = anImage;
       self.parentViewSize = parentView.frame.size;
       
+      NSLog (@"GC initWithNumberOfSideElements - size: %@", NSStringFromCGSize(self.parentViewSize));
+      
       sideElements = sideElems;
       emptyTileLocIndex = -1;
       

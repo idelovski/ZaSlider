@@ -30,12 +30,15 @@ SmallImageCreationDelegate
    SliderViewController     *theSliderViewController;
    HistoryViewController    *theHistoryViewController;
    PrefsViewController      *thePrefsViewController;
+   
    UINavigationController   *navController;
    NetworkingController     *netController;
+   
    ImageAlbum               *builtInAlbum;
    ImageAlbum               *custImageAlbum;
    
    BOOL                      custAlbumFlushed;
+   BOOL                      custAlbumNeeded;
    
    // History
    
@@ -46,7 +49,7 @@ SmallImageCreationDelegate
    NSString                 *usedImageSource;
 
    // Taking photos
-   UIImage                  *rawImage;  // dvojbeno...
+   UIImage                  *newImage;  // dvojbeno...
    UIActivityIndicatorView  *actIndicatorView;
    // Internal info, needed when saving games
    NSString                 *currentImageKey;
@@ -65,8 +68,10 @@ SmallImageCreationDelegate
 @property (nonatomic, retain)          ImageAlbum               *builtInAlbum;
 @property (nonatomic, retain)          ImageAlbum               *custImageAlbum;
 
+@property                              BOOL                      custAlbumNeeded;
+
 @property (nonatomic, retain)          NSString                 *usedImageSource;
-@property (nonatomic, retain)          UIImage                  *rawImage;
+@property (nonatomic, retain)          UIImage                  *newImage;
 @property (nonatomic, retain)          UIActivityIndicatorView  *actIndicatorView;
 
 @property (nonatomic, retain)          NSString                 *currentImageKey;

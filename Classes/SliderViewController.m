@@ -53,14 +53,10 @@
    [self setupBarLabel:self.tileIdBarLabel withStartText:@"" andFontSize:22.f];
    [self resetCloseBarButton];
    [self setupHelpButton];
+}
 
-/*
-   CGRect  rect = infoButton.frame;
-   infoButton.frame = CGRectMake (rect.origin.x-8,rect.origin.y-8,rect.size.width+16,rect.size.height+16);
-   */
-   // if (!sliderImage)
-   //    sliderImage = [UIImage imageNamed:@"AudreyHepburn.png"];
-   
+- (void)setupGameView
+{
    if (!self.ourGameController)  {
       if (self.gsToStartWith /*&& self.sliderImage*/)  {
          self.ourGameController = [[GameController alloc] initWithGameState:self.gsToStartWith
@@ -98,6 +94,9 @@
    [super viewDidLayoutSubviews];
    
    [self layoutViewComponents];
+   
+   if (!self.ourGameController)
+      [self setupGameView];
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -140,7 +139,12 @@
    UIAccelerometer  *accel = [UIAccelerometer sharedAccelerometer];
    UIApplication    *app   = [UIApplication sharedApplication];
 
+   NSLog (@"S viewDidAppear: game = %@", self.ourGameController ? @"YES" : @"NO");
+
    [super viewDidAppear:animated];
+   
+   // if (!self.ourGameController)
+   //    [self setupGameView];
    
    [self becomeFirstResponder];
    
@@ -162,8 +166,9 @@
    xTresholdToken = 0;
    yTresholdToken = -1;  // So it doesn' drom when it's shown for the first time
 
-   if (!self.gameTimer && (self.ourGameController.gcGamePhase == kGameInProgress))
-      self.gameTimer = [NSTimer scheduledTimerWithTimeInterval:(1.0) target:self selector:@selector(onGameTimer) userInfo:nil repeats:YES]; 
+   // Maybe not a good place
+   // if (!self.gameTimer && (self.ourGameController.gcGamePhase == kGameInProgress))
+   //    self.gameTimer = [NSTimer scheduledTimerWithTimeInterval:(1.0) target:self selector:@selector(onGameTimer) userInfo:nil repeats:YES]; 
 }
 
 - (void)viewWillDisappear:(BOOL)animated

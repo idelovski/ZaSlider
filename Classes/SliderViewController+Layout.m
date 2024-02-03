@@ -26,7 +26,7 @@
    ZaSliderAppDelegate  *appDelegate = (ZaSliderAppDelegate *)[UIApplication sharedApplication].delegate;
    
    NSLog (@"S layoutViewComponents - window: %@", NSStringFromCGRect(appDelegate.window.frame));
-   NSLog (@"S layoutViewComponents - view: %@", NSStringFromCGRect(self.view.frame));
+   NSLog (@"S layoutViewComponents - view b: %@", NSStringFromCGRect(self.view.frame));
    
    viewRect = appDelegate.window.frame;
    
@@ -42,11 +42,23 @@
    
    self.view.frame = viewRect;
    
+   NSLog (@"S layoutViewComponents - view a: %@", NSStringFromCGRect(self.view.frame));
+
+   // Game view
+   
    tmpRect = CGRectInset (viewRect, 0., verDifference / 6.);
-   tmpRect.origin.y -= self.view.frame.origin.y / 2.;
-   tmpRect.size.height += self.view.frame.origin.y * 2;
+
+   CGFloat  heightDifference = CGRectGetMaxY(viewRect) - CGRectGetMaxY(tmpRect);
+   
+   // tmpRect.origin.y -= (tmpRect.origin.y - viewRect.origin.y);
+   tmpRect.origin.y = topOffset + heightDifference / 2.;
+   tmpRect.size.height -= topOffset;
    
    self.gameView.frame = tmpRect;
+   
+   NSLog (@"S layoutViewComponents - game: %@", NSStringFromCGRect(self.gameView.frame));
+
+   // Back image
    
    self.backImageView.frame = appDelegate.window.frame;
 

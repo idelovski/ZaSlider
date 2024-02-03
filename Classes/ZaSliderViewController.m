@@ -22,8 +22,8 @@
 
 @synthesize  theMenuViewController, theSliderViewController, theHistoryViewController;
 @synthesize  thePrefsViewController, navController;
-@synthesize  netController, builtInAlbum, custImageAlbum, usedImageSource;
-@synthesize  rawImage, actIndicatorView, currentImageKey, builtInAlbumImageIndex;
+@synthesize  netController, builtInAlbum, custImageAlbum, custAlbumNeeded, usedImageSource;
+@synthesize  newImage, actIndicatorView, currentImageKey, builtInAlbumImageIndex;
 @synthesize  gamesHistory, gamesHistoryDirty /*, gamesHistoryFlushed*/;
 
 /*
@@ -178,7 +178,7 @@
    [builtInAlbum release];
    [custImageAlbum release];
    
-   [rawImage release];
+   [newImage release];
    [usedImageSource release];
    [actIndicatorView release];
    
@@ -572,17 +572,25 @@
    self.theMenuViewController = nil;
    
    if (mediaItemOrNil)  {
-      ImageAlbum  *tmpAlbum;
+      // At this point we may not have ourGameController 
       
-      if (imgKey)
-         tmpAlbum = self.custImageAlbum;
-      else
-         tmpAlbum = self.builtInAlbum;
+      self.custAlbumNeeded = imgKey ? YES : NO;
       
-      [tmpAlbum changeImageWithMediaItem:mediaItemOrNil
-                      withGameController:theSliderViewController.ourGameController
-                       tileImageDelegate:self];
+      [self performSelector:@selector(setGameImageNowOrLater:) withObject:mediaItemOrNil afterDelay:.1];
    }
+}
+
+- (void)setGameImageNowOrLater:(MediaItem *)mediaItemOrNil
+{
+   ImageAlbum  *tmpAlbum = self.custAlbumNeeded ? self.custImageAlbum : self.builtInAlbum;
+
+   if (self.theSliderViewController.ourGameController)
+      [tmpAlbum changeImageWithMediaItem:mediaItemOrNil
+                      withGameController:self.theSliderViewController.ourGameController
+                       tileImageDelegate:self];
+   else
+      [self performSelector:@selector(setGameImageNowOrLater:) withObject:mediaItemOrNil afterDelay:.1];
+   
 }
 
 - (void)acceptAndStoreNewImage:(UIImage *)theImage withImageKey:(NSString *)imgKeyOrNil
@@ -613,19 +621,29 @@
                                                                                                  image:nil
                                                                                                 inView:theSliderViewController.view];
    }
-   [custImageAlbum addImage:theImage
-                 reusingKey:imgKeyOrNil
-                imageSource:self.usedImageSource
-         withGameController:theSliderViewController.ourGameController
-          tileImageDelegate:self
-      andSmallImageDelegate:self];
+   self.currentImageKey = imgKeyOrNil;  // needed down there
+   
+   [self performSelector:@selector(addGameImageNowOrLater:) withObject:theImage afterDelay:.1];
    
    // Store image to the iPhones main Photo Album
    
    if ([self.usedImageSource isEqualToString:kImageSourceCamera] && gGPrefsRec.pfStoreCameraImages)
       if (!self.netController && !imgKeyOrNil)
          UIImageWriteToSavedPhotosAlbum (theImage, nil, nil, nil);
-}  
+}
+
+- (void)addGameImageNowOrLater:(UIImage *)theImage
+{
+   if (self.theSliderViewController.ourGameController)
+      [self.custImageAlbum addImage:theImage
+                         reusingKey:self.currentImageKey
+                        imageSource:self.usedImageSource
+                 withGameController:self.theSliderViewController.ourGameController
+                  tileImageDelegate:self
+              andSmallImageDelegate:self];
+   else
+      [self performSelector:@selector(addGameImageNowOrLater:) withObject:theImage afterDelay:.1];   
+}
 
 #pragma mark -
 #pragma mark Utilities for other classes
@@ -1257,8 +1275,14 @@
 #pragma mark Delegates
 #pragma mark -
 
+// We come here by:
+// a) changeImageWithMediaItem:withGameController:tileImageDelegate:
+// b) addImage:reusingKey:imageSource:withGameController:tileImageDelegate:andSmallImageDelegate:
+
 - (void)imageCacheDidFinishCreatingTileImage:(UIImage *)tileImage forKey:(NSString *)key withTileLocIndex:(NSUInteger)idx;
 {
+   NSLog (@"Z layoutViewComponents - imageCacheDidFinishCreatingTileImage: %d", (int)idx);
+
    for (TileView  *ourTile in self.theSliderViewController.ourGameController.allTiles)  {
       if (ourTile.locIndex == idx)
          ourTile.picView.image = tileImage;
